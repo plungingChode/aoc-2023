@@ -1,0 +1,7 @@
+File.read!("./input")
+|> String.split("\n")
+|> Enum.map(&String.trim/1)
+|> Enum.filter(fn s -> byte_size(s) > 0 end)
+# |> Day3.solve_part1(140)
+|> Day3.solve_part2(140)
+|> IO.inspect(charlists: :as_lists)
