@@ -1,7 +1,7 @@
 defmodule Day2 do
   defmodule Game do
     @moduledoc """
-    Represents a game parsed from a string such as 
+    Represents a game parsed from a string such as
     ```
     Game 1: 3 blue, 4 red; 1 red, 2 green, 6 blue; 2 green
     ```
@@ -14,7 +14,8 @@ defmodule Day2 do
     defstruct [:sets, :id]
   end
 
-  defmodule GameSet do
+  # Here the GameSet become GameCube
+  defmodule GameCube do
     @moduledoc """
     Represents a game set parsed from a string such as
     ```
@@ -22,11 +23,10 @@ defmodule Day2 do
     ```
     """
     @type t :: %__MODULE__{
-            red: integer,
-            green: integer,
-            blue: integer
+            color: Keyword,
+            count: integer,
           }
-    defstruct red: 0, green: 0, blue: 0
+    defstruct color: nil, count: 0
   end
 
   @doc """
@@ -37,8 +37,9 @@ defmodule Day2 do
     # Slice off "Game "
     input = String.slice(input, 5..-1)
     [id, sets] = String.split(input, ": ", parts: 2)
-    {id, _} = Integer.parse(id)
+    id = String.to_integer(id)
 
+    # Instead of treating sets here, you can just consider every cubes (with a regex?)
     sets =
       String.split(sets, "; ")
       |> Enum.map(fn set ->
@@ -107,35 +108,20 @@ defmodule Day2 do
   def game_max_cube_count(game) do
     result =
       Enum.reduce(
-        game.sets,
-        [
-          red: 0,
-          green: 0,
-          blue: 0
-        ],
-        fn set, acc ->
-          acc =
-            if set.red > 0 and set.red > acc[:red] do
-              Keyword.put(acc, :red, set.red)
-            else
-              acc
-            end
-
-          acc =
-            if set.green > 0 and set.green > acc[:green] do
-              Keyword.put(acc, :green, set.green)
-            else
-              acc
-            end
-
-          acc =
-            if set.blue > 0 and set.blue > acc[:blue] do
-              Keyword.put(acc, :blue, set.blue)
-            else
-              acc
-            end
-
-          acc
+        # I think you can consider atomic value of the game to be a `cube` instead of a set, even if
+        # the `set` solution is a great idea because you can treat set by set instead of cube by cube,
+        # what do you think ?
+        game.cubes,
+        %{ :red => 0, :green => 0, :blue => 0 },
+        # Here the set become a `cube` containing a `color` and a `count`.
+        fn cube, acc ->
+          # Can't you generalise the solution with only a `color` and a `count` field ? That would be great
+          # and it would allow to use the powerful Map.update like this (see below).
+          # The `set.color` would contain `:red`, `:green` or `:blue`.
+          # The `set.color` the associated count.
+          Map.update(acc, set.color, set.count, fn existing_count ->
+            max(existing_count, set.count)
+          end)
         end
       )
 
